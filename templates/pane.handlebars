@@ -1,0 +1,12 @@
+<div class="pane">
+  {{#unless isHidden}}
+    {{view 'paneFooter'}}
+  {{/unless}}
+
+  {{#if card}}
+    {{view 'card'}}
+  {{/if}}
+
+  {{view 'paneLoading' isLoadedBinding='cardIsLoaded'}}
+</div>
+

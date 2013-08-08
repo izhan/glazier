@@ -1,6 +1,8 @@
-import 'glazier/services/unauthenticated_github_api' as UnauthenticatedGithubApiService;
+import UnauthenticatedGithubApiService from 'glazier/services/unauthenticated_github_api';
 import { MockPort, MockChannel } from 'helpers/oasis_test_helpers';
 import createServiceForTesting from 'helpers/service_test_helpers';
+
+import Conductor from 'conductor';
 
 var originalAjax = $.ajax;
 
@@ -32,17 +34,14 @@ test("requesting issues", function(){
   stop();
 
   $.ajax = function(data) {
-    var promise = new Conductor.Oasis.RSVP.Promise();
+    return Conductor.Oasis.RSVP.Promise(function(resolve, reject){
+      equal(data.url, 'https://api.github.com/path', 'the url was re-written to include the path');
+      deepEqual(data, requestPayload, 'expected payloaded');
 
-    equal(data.url, 'https://api.github.com/path', 'the url was re-written to include the path');
-    deepEqual(data, requestPayload, 'expected payloaded');
-
-
-    setTimeout(function(){
-      promise.resolve(responseJSON);
-    }, 0);
-
-    return promise;
+      setTimeout(function(){
+        resolve(responseJSON);
+      }, 0);
+    });
   };
 
   this.service.simulateRequest('ajax', requestPayload).then(function(response){

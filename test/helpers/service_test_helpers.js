@@ -1,29 +1,34 @@
+var Conductor = requireModule('conductor');
 
-function createServiceForTesting(ServiceClass, cardId) {
+function createServiceForTesting(ServiceClass, cardId, manifest) {
   var port = {
     on: function(prop, callback) {},
     onRequest: function(prop, callback) {}
   };
   var card = {
-    id: cardId
+    id: cardId,
+    manifest: manifest || {}
   };
   var sandbox = {
     card: card
   };
 
   var service = new ServiceClass(port, sandbox);
+  if (service.initialize) {
+    service.initialize(port, sandbox);
+  }
 
   service.simulateRequest = function(requestName, key, value) {
-    var promise = new Conductor.Oasis.RSVP.Promise(),
-    handler = this.requests[requestName];
+    var handler = this.requests[requestName],
+    thisArg = this;
 
     if (!handler) {
       throw new Error("No such Request: `" + requestName + "`");
     }
 
-    handler.call(this, promise, key, value);
-
-    return promise;
+    return new Conductor.Oasis.RSVP.Promise(function(resolve, reject){
+      resolve(handler.call(thisArg, key, value));
+    });
   };
 
   service.simulateSend = function(eventName, data) {
@@ -39,4 +44,4 @@ function createServiceForTesting(ServiceClass, cardId) {
   return service;
 }
 
-export createServiceForTesting;
+export default createServiceForTesting;

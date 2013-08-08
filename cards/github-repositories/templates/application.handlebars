@@ -1,9 +1,7 @@
-{{#if currentRepository}}
-  <h1>Viewing: {{currentRepository}}</h1>
-{{else}}
-  <h1>Looking up current repoistory...</h1>
-{{/if}}
 <h3>My Repositories</h3>
+{{#unless user}}
+  <div>Please login to glazier to view your repositories...<div>
+{{/unless}}
 <ul>
   {{#each}}
     <li>{{name}}</li>

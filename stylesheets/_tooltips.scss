@@ -1,0 +1,43 @@
+.tooltip {
+	display: none;
+	width: 100px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	color: white;
+	background-color: $tooltip-bg;
+
+	&:hover, [data-tooltip="true"]:hover + & {
+		display: inline-block;
+		@include animation(fadeIn $fast ease-out);
+	}
+
+	&.tooltip-top {
+		position: absolute;
+		bottom: 100%;
+		left: 50%;
+		margin-left: -50px;
+		&:after {
+			content: "";
+			position: absolute;
+			top: 100%; left: 50%;
+			margin-left: -10px;
+			margin-top: -0.5px;
+			width: 0; height: 0;
+			border-left: 10px solid transparent;
+			border-right: 10px solid transparent;
+			border-top: 7px solid $tooltip-bg;
+		}
+	}
+}
+
+@include keyframes(fadeIn) {
+	0% {
+		@include opacity(0);
+		@include transform(translateY(20%));
+	}
+	100% {
+		@include opacity(1);
+		@include transform(translateY(0));
+	}
+}

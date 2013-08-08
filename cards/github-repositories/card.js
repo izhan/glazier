@@ -1,45 +1,44 @@
+import Consumer from 'conductor';
+
 Conductor.require('/vendor/jquery.js');
 Conductor.require('/vendor/handlebars.js');
 Conductor.require('/vendor/ember-latest.js');
+Conductor.require('/vendor/ember_card_bridge.js');
 Conductor.require('/vendor/loader.js');
-Conductor.requireCSS('/cards/github-repositories/card.css');
 
-var App;
+Conductor.requireCSS('/css/glazier_card.css');
+Conductor.requireCSS('card.css');
+
 var card = Conductor.card({
   consumers: {
     authenticatedGithubApi: Conductor.Oasis.Consumer.extend({
       getRepositories: function(){
-        var consumer = this;
-        return this.card.consumers.identity.getCurrentUser().then(function(userJson){
-          if (userJson) {
-            return consumer.request("ajax", {
-              url: '/user/repos',
-              dataType: 'json'
-            });
-          } else {
-            return null;
-          }
-        });
-      }
-    }),
-    repository: Conductor.Oasis.Consumer,
-    identity: Conductor.Oasis.Consumer.extend({
-      getCurrentUser: function(){
-        return this.request('currentUser');
+        if (card.data.user) {
+          return this.request("ajax", {
+            url: '/user/repos',
+            dataType: 'json'
+          });
+        }
       }
     })
   },
 
+  App: null,
+
   render: function (intent, dimensions) {
-    if (!dimensions) { dimensions = {width:500,height:500}; }
-    document.body.innerHTML = "<div id=\"card\"></div>";
-    this.resize(dimensions);
-    App.advanceReadiness();
+    if (!document.getElementById('card') ){
+      document.body.innerHTML = "<div id=\"card\"></div>";
+    }
+
+    return this.App.render(intent, dimensions);
   },
 
   activate: function() {
+    Conductor.Oasis.configure('eventCallback', Ember.run);
+
     console.log("activate github-repositories");
-    App = requireModule('app/application');
+    this.App = requireModule('app/application');
+    this.App.register('card:main', this, { instantiate: false });
   },
 
   metadata: {
@@ -47,16 +46,13 @@ var card = Conductor.card({
       promise.resolve({
         title: "Github Respositories"
       });
+    },
+    card: function() {
+      return {
+        isEditable: false
+      };
     }
-  },
-
-  resize: function(dimensions) {
-    var width = Math.min(dimensions.width, 500);
-    var height = Math.min(dimensions.height, 500);
-    $('body>div').css({
-      width: width
-    });
   }
 });
 
-export = card;
+export default card;

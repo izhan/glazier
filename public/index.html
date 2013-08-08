@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="glazier-conductor-url" content="<%= manifestUrl('/vendor/conductor.js.html') %>" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <script src="<%= manifestUrl('/vendor/loader.js') %>"></script>
     <script src="<%= manifestUrl('/vendor/jquery.js') %>"></script>
+    <script src="<%= manifestUrl('/vendor/jquery-sortable.js') %>"></script>
     <script src="<%= manifestUrl('/vendor/handlebars.js') %>"></script>
     <script src="<%= manifestUrl('/vendor/ember-latest.js') %>"></script>
     <script src="<%= manifestUrl('/vendor/ember-data-latest.js') %>"></script>
-    <script src="<%= manifestUrl('/vendor/conductor.js') %>"></script>
+    <script src="<%= manifestUrl('/vendor/conductor.js.html') %>"></script>
     <script src="<%= manifestUrl('/glazier.js') %>"></script>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
     <script>
+      window.Conductor = requireModule('conductor');
       window.Glazier = requireModule('glazier/main').Glazier;
       Glazier.manifest = <%= manifest %>;
       Glazier.assetHost = '<%= assetHost %>';
-
     </script>
 
     <!-- Analytics -->
-    <link rel="stylesheet" href="<%= manifestUrl('/glazier.css') %>">
+    <link rel="stylesheet" href="<%= manifestUrl('/css/glazier.css') %>">
 
     <script>
       var StarterKit = {};

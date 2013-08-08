@@ -1,5 +1,7 @@
 var ApplicationController = Ember.Controller.extend({
-  name: null
+  name: null,
+  modalIsVisible: false,
+  isReady: false
 });
 
-export = ApplicationController;
+export default ApplicationController;

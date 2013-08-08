@@ -1,12 +1,13 @@
-import 'glazier/router' as Router;
-import 'glazier/store' as Store;
-import 'resolver' as Resolver;
+import Router from 'glazier/router';
+import Store from 'glazier/store';
+import Resolver from 'resolver';
 
 var Application = Ember.Application.extend({
+  LOG_ACTIVE_GENERATION: true,
   modulePrefix: 'glazier',
   Router: Router,
   Store: Store,
   resolver: Resolver
 });
 
-export = Application;
+export default Application;

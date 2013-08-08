@@ -1,5 +1,9 @@
 module.exports = function(grunt) {
-  require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
+  require('matchdep').
+    filterDev('grunt-*').
+    filter(function(name){ return name !== 'grunt-cli'; }).
+      forEach(grunt.loadNpmTasks);
+
   grunt.loadTasks('tasks');
 
   function config(configFileName) {
@@ -15,7 +19,7 @@ module.exports = function(grunt) {
     transpile: config('transpile'),
     copy: config('copy'),
     qunit: config('qunit'),
-    ember_handlebars: config('ember_handlebars'),
+    emberTemplates: config('ember_templates'),
     concat: config('concat'),
     sass: config('sass'),
     shell: config('shell'),
@@ -30,17 +34,46 @@ module.exports = function(grunt) {
     process.env.GLAZIER_ENV = 'prod';
   });
 
-  grunt.registerTask('build', ['clean', 'ember_handlebars', 'transpile', 'jshint', 'copy_glazier', 'sass', 'concat', 'shell:buildCards', 'copy:cards']);
+  grunt.registerTask("jsframe", function(){
+    var fs = require('fs'),
+        jsf = require('jsframe'),
+        out = fs.openSync('tmp/public/vendor/conductor.js.html', 'w');
+
+    jsf.process('tmp/conductor.js', out);
+  });
+
+  grunt.registerTask("build:js", [
+                       'emberTemplates',
+                       'transpile',
+                       'jshint',
+  ]);
+
+  grunt.registerTask("build:css", ['sass', 'templateCSS']);
+
+  grunt.registerTask('build', [
+                       'clean',
+                       'lock',
+                       'build:js',
+                       'build:css',
+                       'copy_glazier',
+                       'concat',
+                       'jsframe',
+                       'shell:buildCards', // slow
+                       'copy:cards' ]);
+
   grunt.registerTask('copy_glazier', ['copy:main', 'copy:test', 'copy:fixtures', 'copy:vendor']);
 
-  grunt.registerTask('assets', ['build', /*'uglify:all',*/ 'md5', 'index.html']);
+  grunt.registerTask('assets', ['build', /*'uglify:all',*/ 'md5', 'index.html', 'templateCSS']);
 
   grunt.registerTask('ingest', ['assets', 'shell:ingest']);
-  grunt.registerTask('deploy', ['assets', 's3:dev']);
+  grunt.registerTask('deploy', ['prod', 'assets', 's3:prod', 'shell:ingestIndex']);
+  grunt.registerTask('deployCards', ['shell:deployCards', 'shell:herokuIngestCards']);
 
+  grunt.registerTask('ingestCards', ['shell:npmInstallForCards', 'build', 'shell:ingestCardManifests']);
   grunt.registerTask('preview', ['build', /*'uglify:all',*/ 'md5', 'index.html', 'shell:ingest', 'connect', 'watch']);
-  grunt.registerTask('preview:cdn', ['prod', 'deploy', 'shell:ingest', 'connect', 'watch']);
 
+  grunt.registerTask('server', ['shell:glazierServer']);
   grunt.registerTask('test', ['shell:npmInstallForCards', 'build',  'connect', 'qunit:all']);
-  grunt.registerTask('default', ['shell:npmInstallForCards','build', 'index.html', 'connect', 'watch']);
+  grunt.registerTask('fastBoot',['build', 'index.html', 'templateCSS', 'connect', 'unlock', 'watch']);
+  grunt.registerTask('default', ['shell:npmInstallForCards','fastBoot']);
 };

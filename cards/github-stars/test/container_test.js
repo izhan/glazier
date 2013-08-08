@@ -1,4 +1,6 @@
 module("Github::Stars Acceptances");
+
+import Conductor from 'conductor';
 import { inCard, TestService } from 'helpers/card_test_helpers';
 
 var conductor, card;
@@ -9,30 +11,26 @@ module("Github::Stars Acceptances", {
   setup: function() {
 
     conductor = new Conductor({
-      testing: true
+      testing: true,
+      conductorURL: '/vendor/conductor.js.html'
     });
 
     Conductor.services['test'] = TestService;
 
-    Conductor.services['repository'] = Conductor.Oasis.Service.extend({
-      requests: {
-        getRepository: function(promise) {
-          promise.resolve('emberjs/ember.js');
-        }
-      }
-    });
     Conductor.services['unauthenticatedGithubApi'] = Conductor.Oasis.Service.extend({
       requests: {
-        ajax: function(promise, ajaxOpts) {
-          promise.resolve([]);
+        ajax: function(ajaxOpts) {
+          return { meta: {}, data: [] };
         }
       }
     });
 
-    card = conductor.load('/cards/github-stars/card.js', 1, {
-      capabilities: ['test', 'repository', 'unauthenticatedGithubApi']
+    conductor.loadData('/cards/glazier-github-stars/card.js', 1, { user: null, repositoryName: 'emberjs/ember.js' });
+    card = conductor.load('/cards/glazier-github-stars/card.js', 1, {
+      capabilities: ['test', 'authenticatedGithubApi', 'unauthenticatedGithubApi']
     });
-    card.then(null, function(e){ console.log(e); });
+
+    card.promise.then(null, Conductor.error);
     card.appendTo('#qunit-fixture');
   },
 
@@ -41,18 +39,14 @@ module("Github::Stars Acceptances", {
   }
 });
 
-asyncTest("it renders", 1, function(){
-  inCard(card, function(card, resolver){
-    function fail(e) {
-      ok(false, e);
-      resolver.reject();
-    }
+asyncTest("it renders", 1, function() {
+  inCard(card, function(card){
     function wait() {
       var promise, obj = {}, helperName;
 
       return new Ember.RSVP.Promise(function(resolve) {
         var watcher = setInterval(function() {
-          var routerIsLoading = window.App.__container__.lookup('router:main').router.isLoading;
+          var routerIsLoading = card.App.__container__.lookup('router:main').router.isLoading;
           if (routerIsLoading) { return; }
           if (Ember.run.hasScheduledTimers() || Ember.run.currentRunLoop) { return; }
           clearInterval(watcher);
@@ -62,12 +56,14 @@ asyncTest("it renders", 1, function(){
         }, 10);
       });
     }
-    card.render().then(function(){
-      wait().then(function(){
-        equal($('h3').text(), 'Github Stargazers for emberjs/ember.js');
+
+    card.render();
+
+    return card.App.then(function(){
+      return wait().then(function(){
         start();
-        resolver.resolve();
-      }).then(null, fail);
-    }, fail);
-  }).then(null, console.error);
+        equal($('h3').text(), 'Github Stargazers for emberjs/ember.js');
+      });
+    });
+  });
 });

@@ -1,5 +1,5 @@
-var ApplicationController = Ember.ArrayController.extend({
-  repositoryName: null
+var ApplicationController = Ember.ObjectController.extend({
+  loggedIn: Ember.computed.bool('user')
 });
 
-export = ApplicationController;
+export default ApplicationController;

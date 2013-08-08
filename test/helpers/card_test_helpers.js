@@ -1,10 +1,11 @@
+var Conductor = requireModule('conductor');
+
 function inCard(card, fn) {
 
   if (arguments.length !== 2){
     throw new TypeError('inCard requires 2 arguments, (card, function)');
   }
 
-  fn.promise = new Conductor.Oasis.RSVP.Promise();
   fn.testId = Ember.guidFor(fn);
 
   return card.sandbox.activatePromise.then(function(){
@@ -16,6 +17,10 @@ function inCard(card, fn) {
     };
 
     return service.request('runTest', run);
+  }).then(null, function(reason) {
+    start();
+    ok(false, QUnit.jsDump.parse(reason));
+    throw reason;
   });
 }
 

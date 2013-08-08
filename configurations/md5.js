@@ -5,7 +5,7 @@ module.exports = {
     files: [{
       expand: true,
       cwd: 'tmp/public',
-      src: ['**/*'],
+      src: ['**/*', '!glazier/**/*', '!test/**/*'],
       dest: 'tmp/md5/',
       filter: 'isFile'
     }],
@@ -27,7 +27,7 @@ module.exports = {
 
           manifest[from] = to;
         }
-        grunt.file.write('tmp/manifest.json', JSON.stringify(manifest));
+        grunt.file.write('tmp/manifest.json', JSON.stringify(manifest, null, 2));
       }
     }
   }

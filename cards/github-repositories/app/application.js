@@ -1,4 +1,4 @@
-import 'resolver' as Resolver;
+import Resolver from 'resolver';
 
 var App = Ember.Application.create({
   modulePrefix: 'app',
@@ -7,6 +7,7 @@ var App = Ember.Application.create({
 });
 
 App.deferReadiness();
+
 requireModule('templates');
 
-export = App;
+export default App;

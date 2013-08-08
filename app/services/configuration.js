@@ -1,3 +1,5 @@
+import Conductor from 'conductor';
+
 var ConfigurationService = Conductor.Oasis.Service.extend({
 
   /*
@@ -12,14 +14,12 @@ var ConfigurationService = Conductor.Oasis.Service.extend({
       @public
 
       @method configurationValue
-      @param promise {Conductor.Oasis.RSVP.Promise}
       @param key {String}
     */
-    configurationValue: function(promise, key) {
-      var result = Ember.$('meta[name='+ key + ']').attr('content');
-      promise.resolve(result);
+    configurationValue: function(key) {
+      return Ember.$('meta[name='+ key + ']').attr('content');
     }
   }
 });
 
-export = ConfigurationService;
+export default ConfigurationService;

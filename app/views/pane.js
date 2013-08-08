@@ -1,41 +1,94 @@
 var PaneView = Ember.View.extend({
-  classNames: ['pane'],
-  init: function () {
-    this._super();
-    this.cardManager = this.container.lookup('cardManager:main');
+  templateName: 'pane',
+  classNameBindings: [
+    'controller.isHidden:hidden-pane:visible-pane',
+    ':pane-wrapper',
+    'fullSize'
+  ],
+
+  fullSize: Ember.computed.alias('controller.fullSize'),
+
+  click: function(event) {
+    var $target = $(event.target),
+        isBackgroundClick = $target.closest('.pane').length === 0;
+
+    if (isBackgroundClick && this.get('fullSize')) {
+      this.collapse();
+    }
   },
 
-  didInsertElement: function () {
+  toggleExpansion: function() {
+    if (this.get('fullSize')) {
+      this.collapse();
+    } else {
+      this.expand();
+    }
+  },
+
+  expand: function(){
+    var $paneWrapper = this.$();
+    var $pane = $paneWrapper.children('.pane');
+
+    $pane.css(this.originalPosition());
+
+    Ember.run.scheduleOnce('afterRender', this, this.afterExpand);
+    this.set('fullSize', true);
+  },
+
+  afterExpand: function() {
+    var $pane = this.$().children('.pane');
+
+    $pane.on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', '*', function(evt) {
+      evt.stopPropagation();
+    });
+
+    $pane.one('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', function() {
+      $pane.removeClass('transition-position');
+    });
+
+    setTimeout(function() {
+      $pane.addClass('transition-position').attr('style', '');
+    }, 50);
+  },
+
+  collapse: function(){
     var self = this;
-    var cardManager = this.cardManager;
-    var pane = this.get('content');
-    pane.then(function() {
-      var providers = pane.get('capabilityProviders');
-      var type = pane.get('cardManifest');
+    var $paneWrapper = this.$();
+    var $pane = $paneWrapper.children('.pane');
 
-      var promises = [type];
-      if (providers && providers.get('length') > 0) {
-        promises.push(providers);
-      }
+    $pane.one('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', function() {
+      $pane.removeClass('transition-position');
 
-      return Ember.RSVP.all(promises).then(function () {
-        var card = cardManager.load(pane);
-        self.appendCard(card);
-      });
+      Ember.run.scheduleOnce('afterRender', self, self.afterCollapse);
+      self.set('fullSize', false);
+    });
 
-    }).then(null, Conductor.error);
+    $pane.addClass('transition-position').css(this.originalPosition());
+    $paneWrapper.css({
+      'background-color': 'transparent'
+    });
   },
 
-  willDestroyElement: function() {
-    var pane = this.get('content');
-    this.cardManager.unload(pane);
+  afterCollapse: function() {
+    var $paneWrapper = this.$();
+    var $pane = $paneWrapper.children('.pane');
+
+    $pane.attr('style', '');
+    $paneWrapper.attr('style', '');
+
+    $pane.off('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd');
   },
 
-  appendCard: function(card) {
-    card.appendTo(this.get('element')).then(function() {
-      card.render();
-    }).then(null, Conductor.error);
+  originalPosition: function() {
+    var $paneWrapper = this.$();
+
+    return {
+      left: $paneWrapper.offset().left,
+      right: $paneWrapper.offsetParent().innerWidth() - ($paneWrapper.offset().left + $paneWrapper.width()),
+      top: $paneWrapper.position().top,
+      bottom: $paneWrapper.offsetParent().outerHeight() - ($paneWrapper.position().top + $paneWrapper.innerHeight())
+    };
   }
 });
 
-export = PaneView;
+export default PaneView;

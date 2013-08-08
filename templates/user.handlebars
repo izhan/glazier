@@ -1,5 +1,13 @@
 {{#if isLoggedIn}}
   <img {{bindAttr src="avatarUrl"}} /> {{username}}
+  <a class="logout" {{action logout}}>
+    <span class="icon-log-out" data-tooltip="true"></span>
+    <span class="tooltip tooltip-top">Log Out</span>
+  </a>
 {{else}}
-  Login with Github
+  {{#if isLoggingIn}}
+    logging in...
+  {{else}}
+    Login with Github
+  {{/if}}
 {{/if}}

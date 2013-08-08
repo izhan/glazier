@@ -1,3 +1,5 @@
+import Conductor from 'conductor';
+
 var FullXhrService = Conductor.Oasis.Service.extend({
 
   /*
@@ -12,14 +14,13 @@ var FullXhrService = Conductor.Oasis.Service.extend({
       @public
 
       @method ajax
-      @param promise {Conductor.Oasis.RSVP.Promise}
       @param ajaxOpts {Object}
     */
-    ajax: function(promise, ajaxOpts) {
+    ajax: function(ajaxOpts) {
       console.log('FullXhrService.ajax', ajaxOpts);
-      Ember.$.ajax($.extend(ajaxOpts, {context: promise})).then(promise.resolve, promise.reject);
+      return Ember.$.ajax(ajaxOpts);
     }
   }
 });
 
-export = FullXhrService;
+export default FullXhrService;

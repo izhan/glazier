@@ -3,10 +3,12 @@ var card = Conductor.card({
     fullXhr: Conductor.Oasis.Consumer.extend({}),
     test: Conductor.Oasis.Consumer.extend({
       requests: {
-        runTest:  function(promise, testData){
+        runTest:  function(testData) {
           var testFn = new Function('return ' + testData.fnString)();
 
-          testFn.call(window, card, promise);
+          return Conductor.Oasis.RSVP.Promise(function(resolve, reject) {
+            resolve(testFn.call(window, card));
+          });
         }
       }
     })

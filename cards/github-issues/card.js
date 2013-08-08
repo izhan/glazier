@@ -1,56 +1,51 @@
+import Consumer from 'conductor';
+
 Conductor.require('/vendor/jquery.js');
 Conductor.require('/vendor/handlebars.js');
 Conductor.require('/vendor/ember-latest.js');
+Conductor.require('/vendor/ember_card_bridge.js');
 Conductor.require('/vendor/loader.js');
-Conductor.requireCSS('/cards/github-issues/card.css');
 
-import 'app/consumers/test' as TestConsumer;
-import 'app/consumers/identity' as IdentityConsumer;
+Conductor.requireCSS('/css/glazier_card.css');
+Conductor.requireCSS('card.css');
+
+import TestConsumer from 'app/consumers/test';
 
 var card = Conductor.card({
   consumers: {
     'test': TestConsumer,
-    'identity': IdentityConsumer,
-    'repository': Conductor.Oasis.Consumer,
     'authenticatedGithubApi': Conductor.Oasis.Consumer,
     'unauthenticatedGithubApi': Conductor.Oasis.Consumer
   },
 
+  App: null,
+
   render: function (intent, dimensions) {
-    if (!dimensions) {
-      dimensions = {
-        width: 500,
-        height: 2000
-      };
+    if (!document.getElementById('card')){
+      document.body.innerHTML = "<div id=\"card\"></div>";
     }
 
-    document.body.innerHTML = "<div id=\"card\"></div>";
-
-    Ember.run(App, 'advanceReadiness');
-
-    return App;
+    return this.App.render(intent, dimensions);
   },
 
   activate: function() {
-    window.App = requireModule('app/application');
+    Conductor.Oasis.configure('eventCallback', Ember.run);
+    this.App = requireModule('app/application');
+    this.App.register('card:main', this, { instantiate: false });
   },
 
   metadata: {
-    document: function(promise) {
-      promise.resolve({
+    document: function() {
+      return {
         title: "Github Issues"
-      });
+      };
+    },
+    card: function() {
+      return {
+        isEditable: false
+      };
     }
-  },
-
-  resize: function(dimensions) {
-    var width = Math.min(dimensions.width, 500);
-    var height = Math.min(dimensions.height, 500);
-
-    $('body>div').css({
-      width: width
-    });
   }
 });
 
-export = card;
+export default card;

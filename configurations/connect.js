@@ -1,11 +1,13 @@
 var proxy = require('proxy-middleware');
+var connectLiveReload = require('connect-livereload');
 var url = require('url');
 var request = require('http').request;
+var lockFile = require('lockfile');
 
 module.exports = {
   server: {
     options: {
-      port: 8000,
+      port: process.env.port || 8000,
       hostname: '0.0.0.0',
       base: 'tmp/public',
       middleware: middleware
@@ -42,21 +44,17 @@ function proxyIndex(req, res, next){
   }
 }
 
-function blockDuringBuild(req,res,next){
-  if (process.isLockedDuringBuild) {
-    var tryAgainSoon = function() {
-      setTimeout(function(){
-        if (process.isLockedDuringBuild) {
-          tryAgainSoon();
-        } else {
-          next();
-        }
-      }, 100);
-    };
-    tryAgainSoon();
-  } else {
-    next();
-  }
+// works with tasks/locking.js
+function lock(req, res, next) {
+  var lockPath = '';
+
+  (function retry() {
+    if (lockFile.checkSync(lockPath + 'tmp/connect.lock')) {
+      setTimeout(retry, 100);
+    } else {
+      next();
+    }
+  }());
 }
 
 function middleware(connect, options) {
@@ -66,7 +64,8 @@ function middleware(connect, options) {
   theUrl.route = '/api';
 
   return [
-    blockDuringBuild,
+    connectLiveReload(),
+    lock,
     proxy(theUrl),
     proxyIndex,
     connect['static'](options.base),

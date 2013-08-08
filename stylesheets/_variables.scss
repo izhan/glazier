@@ -1,0 +1,26 @@
+$min-card-width: 512px;
+$min-card-height: 260px;
+$card-footer-height: 35px;
+
+$min-page-width: $min-card-width * 2;
+$page-padding: 25px;
+
+$header-height: 125px;
+$footer-height: 50px;
+
+$base-color: #1795b5;
+$base-color-lightest: lighten($base-color, 50%);
+$base-color-lighter: lighten($base-color, 30%);
+$base-color-light: lighten($base-color, 10%);
+$base-color-dark: darken($base-color, 10%);
+
+$gray: #666666;
+$gray-lightest: #f2f2f2;
+$gray-lighter: #b3b3b3;
+$gray-light: #808080;
+$gray-dark: #4d4d4d;
+$gray-darker: #333333;
+
+$tooltip-bg: $gray-dark;
+
+$fast: 200ms;

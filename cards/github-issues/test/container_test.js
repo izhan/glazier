@@ -1,5 +1,6 @@
 module("Github::Issues Acceptances");
 import { inCard, TestService } from 'helpers/card_test_helpers';
+import Conductor from 'conductor';
 
 var conductor, card;
 
@@ -7,41 +8,27 @@ if (/phantom/i.test(navigator.userAgent)) { return; }
 
 module("Github::Issues Acceptances", {
   setup: function() {
-
     conductor = new Conductor({
-      testing: true
+      testing: true,
+      conductorURL: '/vendor/conductor.js.html'
     });
 
     Conductor.services['test'] = TestService;
 
-    Conductor.services['repository'] = Conductor.Oasis.Service.extend({
-      requests: {
-        getRepository: function(promise) {
-          promise.resolve('emberjs/ember.js');
-        }
-      }
-    });
-
     Conductor.services['unauthenticatedGithubApi'] = Conductor.Oasis.Service.extend({
       requests: {
-        ajax: function(promise, ajaxOpts) {
-          promise.resolve([]);
+        ajax: function(ajaxOpts) {
+          return [];
         }
       }
     });
 
-    Conductor.services['identity'] = Conductor.Oasis.Service.extend({
-      requests: {
-        currentUser: function(promise) {
-          promise.resolve(null);
-        }
-      }
+    conductor.loadData('/cards/glazier-github-issues/card.js', 1, {user: null, repositoryName: 'emberjs/ember.js'});
+    card = conductor.load('/cards/glazier-github-issues/card.js', 1, {
+      capabilities: ['test', 'unauthenticatedGithubApi']
     });
 
-    card = conductor.load('/cards/github-issues/card.js', 1, {
-      capabilities: ['test', 'repository', 'unauthenticatedGithubApi', 'identity']
-    });
-    card.then(null, function(e){ console.log(e); });
+    card.promise.then(null, Conductor.error);
     card.appendTo('#qunit-fixture');
   },
 
@@ -51,13 +38,14 @@ module("Github::Issues Acceptances", {
 });
 
 asyncTest("it renders", 1, function(){
-  inCard(card, function(card, resolver){
+
+  inCard(card, function(card){
     function wait() {
       var promise, obj = {}, helperName;
 
-      return new Ember.RSVP.Promise(function(resolve) {
+      return new Conductor.Oasis.RSVP.Promise(function(resolve) {
         var watcher = setInterval(function() {
-          var routerIsLoading = window.App.__container__.lookup('router:main').router.isLoading;
+          var routerIsLoading = card.App.__container__.lookup('router:main').router.isLoading;
           if (routerIsLoading) { return; }
           if (Ember.run.hasScheduledTimers() || Ember.run.currentRunLoop) { return; }
           clearInterval(watcher);
@@ -67,16 +55,13 @@ asyncTest("it renders", 1, function(){
         }, 10);
       });
     }
-    card.render().then(function(){
-      wait().then(function(){
+
+    card.render();
+    return card.App.then(function(){
+      return wait().then(function(){
         equal($('h3:last').text(), 'Github Issues for emberjs/ember.js');
         start();
-        resolver.resolve();
       });
-    }, function(e){
-      ok(false, e);
-      resolver.reject();
     });
-
-  }).then(null, console.error);
+  });
 });

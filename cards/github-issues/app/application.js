@@ -1,4 +1,4 @@
-import 'resolver' as Resolver;
+import Resolver from 'resolver';
 
 var App = Ember.Application.create({
   modulePrefix: 'app',
@@ -6,7 +6,11 @@ var App = Ember.Application.create({
   resolver: Resolver
 });
 
+App.Router.map(function(){
+  this.route('disabled');
+});
+
 App.deferReadiness();
 requireModule('templates');
 
-export = App;
+export default App;

@@ -1,3 +1,5 @@
+import Conductor from 'conductor';
+
 var ProxyService = Conductor.Oasis.Service.extend({
   /*
     @public
@@ -21,7 +23,7 @@ var ProxyService = Conductor.Oasis.Service.extend({
     @public
 
     @property targetPromise
-    @type Conductor.Oasis.RSVP.Promise
+    @type Conductor.Oasis.RSVP.Promise.defer
     @default 'null'
   */
   targetPromise: null,
@@ -40,7 +42,7 @@ var ProxyService = Conductor.Oasis.Service.extend({
     this._requests = {};
 
     if (this.sandbox.card.consumes[capability]) {
-      this.targetPromise = new Conductor.Oasis.RSVP.Promise();
+      this.targetPromise = Conductor.Oasis.RSVP.defer();
       port.all(this.forward, this);
     }
   },
@@ -51,15 +53,17 @@ var ProxyService = Conductor.Oasis.Service.extend({
     @method getProxyTargetPort
   */
   getProxyTargetPort: function () {
-    var capability = this.capability;
-    var targetCard = this.sandbox.card.targets[capability];
-    if (targetCard) {
+    var capability = this.capability, providerPromise = this.sandbox.card.providerPromises[capability];
+
+    if (!providerPromise) {
+      throw new Error('No target card available to provide service ' + capability);
+    }
+
+    return providerPromise.then(function (targetCard) {
       return targetCard.sandbox.activatePromise.then(function () {
         return targetCard.sandbox.channels[capability].port1;
       });
-    } else {
-      throw new Error('No target card available to provide service ' + capability);
-    }
+    }, Conductor.error);
   },
 
   /*
@@ -76,7 +80,7 @@ var ProxyService = Conductor.Oasis.Service.extend({
       targetPort.all(self.back, self);
       self.targetPort = targetPort;
       self.targetPromise.resolve(targetPort);
-    }, console.error);
+    }, Conductor.error);
 
     this.loaded = true;
   },
@@ -98,7 +102,7 @@ var ProxyService = Conductor.Oasis.Service.extend({
 
     this.load(); //lazy load service
 
-    this.targetPromise.then(function (targetPort) {
+    this.targetPromise.promise.then(function (targetPort) {
       targetPort.send(eventName, data);
     }, console.error);
   },
@@ -124,4 +128,4 @@ var ProxyService = Conductor.Oasis.Service.extend({
   }
 });
 
-export = ProxyService;
+export default ProxyService;

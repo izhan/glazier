@@ -2,7 +2,8 @@ glazier
 ==============
 [![Build Status](https://travis-ci.org/yapplabs/glazier.png?branch=master)](https://travis-ci.org/yapplabs/glazier)
 
-Dashboard for Github projects using Conductor.js and Oasis.js.
+Dashboard for Github projects using [Conductor.js](https://github.com/tildeio/conductor.js) and 
+[Oasis.js](https://github.com/tildeio/oasis.js).
 
 
 ## Setup
@@ -48,27 +49,40 @@ When you submit the form you will get a **client id** and **client secret**. Set
     #these are needed in the windows running both the proxy and the server
 
 
-### Setup the Database and start the server
+### Setup the database and prepare the server
 
     cd glazier-server
     bundle install
     rake db:create
     rake db:migrate
-    bundle exec rails server -p 3040
 
 ### Install the Glazier proxy dependencies and start the proxy
 
     #open a separate window and navigate to the top glazier directory
     #make sure client id and client secret are set in this window
+    bundle install
     npm install
+    grunt              //interrupt this task when it reaches the Waiting state
     grunt ingest
+    grunt ingestCards
     grunt
+
+### Start the server
+
+    grunt server   //from the top glazier directory
 
 ### Navigate to the app in your browser
 
     http://localhost:8000/api/
 
-# Running specs
+## Adding Node Packages
+
+Glazier uses [npm shrinkwrapping](https://npmjs.org/doc/shrinkwrap.html) to prevent 
+dependency version problems.  If you add or change dependencies in the package.json 
+files (either container or cards), make sure to run `npm shrinkwrap` in the appropriate
+place.
+
+## Running specs
 
 Start the grunt server with `grunt`, then visit:
 
@@ -84,3 +98,13 @@ glazier-server uses RSpec for unit tests. To run them:
 To automatically execute glazier-server specs as you update code and specs:
 
     bundle exec guard
+
+## Troubleshooting
+
+**500 Internal Server Error**
+
+If this occurs immediately after you update the project, its possible the database structure has
+changed and you haven't migrated.  Run:
+
+    #in glazier/glazier-server directory
+    rake db:migrate
